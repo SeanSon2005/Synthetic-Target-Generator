@@ -8,7 +8,7 @@ import os
 from multiprocessing.pool import ThreadPool
 from tqdm import tqdm
 
-SAMPLE_SIZE = 50
+SAMPLE_SIZE = 200
 MAX_NUM_OBJECTS = 2
 PADDING = 20
 CORE_COUNT = 64

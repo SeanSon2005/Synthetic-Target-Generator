@@ -7,7 +7,7 @@ from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 class Backgrounds:
     def __init__(self):
         self.path = "background_images/"
-        self.len = 1000
+        self.len = 2000
     def sample(self):
         id = str(np.random.randint(0,self.len))
         return cv2.imread(self.path+"bg_img"+id+".jpg")
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     # How many images you want to generate
     NUM_IMAGES = 1000
     # Change this to the highest id number in the folder
-    LAST_IMAGE_ID = -1
+    LAST_IMAGE_ID = 999
     # YOU CAN CHANGE THE PROMPT TO WHAT YOU WANT
     PROMPT = "drone view of asphalt"
     # DESTINATION FOLDER
