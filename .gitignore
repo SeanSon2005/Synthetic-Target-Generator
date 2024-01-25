@@ -1,7 +1,6 @@
 /env
 generators/data.npy
 generators/images.npy
-/background_images
 /data
 /base_images
 /base_labels
