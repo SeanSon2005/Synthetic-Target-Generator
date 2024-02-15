@@ -8,10 +8,10 @@ import os
 from multiprocessing.pool import ThreadPool
 from tqdm import tqdm
 
-SAMPLE_SIZE = 200
+SAMPLE_SIZE = 1
 MAX_NUM_OBJECTS = 2
 PADDING = 20
-CORE_COUNT = 64
+CORE_COUNT = 24
 
 # pastes an image on top of another image taking alpha into account
 @numba.jit(nopython=True)
