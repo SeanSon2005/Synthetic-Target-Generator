@@ -8,10 +8,26 @@ import os
 from multiprocessing.pool import ThreadPool
 from tqdm import tqdm
 
-SAMPLE_SIZE = 1
+SAMPLE_SIZE = 200
 MAX_NUM_OBJECTS = 2
 PADDING = 20
 CORE_COUNT = 24
+CORR_NOISE_NORM = 3
+
+# applies additive correlation noise to image
+def camera_noise(image):
+    # add white overlay
+    white_amount = np.random.random() * 0.25 + 0.2
+    white_image = np.ones_like(image, dtype=np.uint8) * 255
+    image = cv2.addWeighted(image,1-white_amount,white_image,white_amount,0)
+
+    # generate correlated noise
+    corr_noise = np.random.normal(0, 0.02, size=image.shape) * np.sqrt(image)
+    corr_noise += np.random.normal(0, 0.02, size=image.shape)
+    kernel = np.ones((3,3))/9
+    corr_noise = cv2.filter2D(corr_noise, ddepth=-1, kernel=kernel)
+
+    return image + corr_noise
 
 # pastes an image on top of another image taking alpha into account
 @numba.jit(nopython=True)
@@ -26,17 +42,17 @@ def alpha_paste(bg_img, img):
 
     # Handle Pasting
     for ay in range(img_size):
-            for ax in range(img_size):
-                y_i = frame_y + ay
-                x_i = frame_x + ax
-                if frame_x < 0 or frame_y < 0 or \
-                y_i >= bg_img_size or \
-                x_i >= bg_img_size:
-                    continue
-                if img[ay][ax][3] == 255:
-                    bg_img[y_i][x_i][0] = min(max(img[ay][ax][0]+np.random.randint(-5,6),0),255)
-                    bg_img[y_i][x_i][1] = min(max(img[ay][ax][1]+np.random.randint(-5,6),0),255)
-                    bg_img[y_i][x_i][2] = min(max(img[ay][ax][2]+np.random.randint(-5,6),0),255)
+        for ax in range(img_size):
+            y_i = frame_y + ay
+            x_i = frame_x + ax
+            if frame_x < 0 or frame_y < 0 or \
+            y_i >= bg_img_size or \
+            x_i >= bg_img_size:
+                continue
+            if img[ay][ax][3] == 255:
+                bg_img[y_i][x_i][0] = min(max(img[ay][ax][0]+np.random.randint(-5,6),0),255)
+                bg_img[y_i][x_i][1] = min(max(img[ay][ax][1]+np.random.randint(-5,6),0),255)
+                bg_img[y_i][x_i][2] = min(max(img[ay][ax][2]+np.random.randint(-5,6),0),255)
     return bg_img, (center_x,center_y)
 
 # generates a sample image
@@ -60,7 +76,8 @@ def generate_sample(bg_sampler:Backgrounds, tgt_sampler:Targets, idx):
             px_size = str(img_size / bg_img_size)
             file.write("0 "+c_x+" "+c_y+" "+px_size+" "+px_size+"\n")
         file.close()
-    cv2.imwrite("base_images/data"+str(idx)+".png",bg_img)
+    bg_img = camera_noise(bg_img)
+    cv2.imwrite("base_images/data"+str(idx)+".jpg",bg_img)
 
 if __name__ == '__main__':
     print("Starting generator...")

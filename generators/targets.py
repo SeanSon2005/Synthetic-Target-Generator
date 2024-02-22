@@ -3,8 +3,8 @@ import math
 import numpy as np
 
 SEED = 2024
-SIZE = 100
-TEXT_SIZE = 1.2
+SIZE = 60
+TEXT_SIZE = 0.8
 
 COLORS = {  # the 4th value is for alpha channel
     0: (0,0,0,255),  # black
@@ -54,7 +54,7 @@ def add_text(img, alphanum, color):
     txt = str(chr(alphanum))
     return cv2.putText(img,
                     txt,
-                    (SIZE//2-12,SIZE//2+12),
+                    (SIZE//2-9,SIZE//2+9),
                     FONT,
                     TEXT_SIZE,
                     color,

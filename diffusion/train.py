@@ -15,7 +15,7 @@ class TrainingConfig:
     output_dir = "ddpm-butterflies-128"  # the model name locally and on the HF Hub
 
     push_to_hub = True  # whether to upload the saved model to the HF Hub
-    hub_model_id = "<your-username>/<my-awesome-model>"  # the name of the repository to create on the HF Hub
+    hub_model_id = "SeanSon2005/butterfly_test"  # the name of the repository to create on the HF Hub
     hub_private_repo = False
     overwrite_output_dir = True  # overwrite the old model when re-running the notebook
     seed = 0
