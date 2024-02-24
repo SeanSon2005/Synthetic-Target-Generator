@@ -1,6 +1,6 @@
 from ultralytics import YOLO
 
-LOAD_FROM_PREV = False
+LOAD_FROM_PREV = True
 
 if LOAD_FROM_PREV:
     model = YOLO('yolov8n.yaml').load('best.pt')

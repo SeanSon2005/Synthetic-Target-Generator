@@ -19,9 +19,9 @@ def processing_img(image, model):
             results = model(frame)
             combined_img = model.draw_detections(frame)
             output_image[row:row+FRAME_SIZE,col:col+FRAME_SIZE] = combined_img
-            cv2.imshow("Output", combined_img)
-            cv2.imshow("hi",frame)
-            cv2.waitKey(0)
+            # cv2.imshow("Output", combined_img)
+            # cv2.imshow("hi",frame)
+            # cv2.waitKey(0)
             count += 1
     # cv2.destroyAllWindows()
     print("Iterations: " + str(count))

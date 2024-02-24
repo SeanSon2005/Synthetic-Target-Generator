@@ -9,12 +9,12 @@ TEXT_SIZE = 0.8
 COLORS = {  # the 4th value is for alpha channel
     0: (0,0,0,255),  # black
     1: (255,255,255,255),  # white
-    2: (0,0,255,255),  # red
+    2: (81,88,192,255),  # red
     3: (0,255,0,255),  # green
-    4: (255,0,0,255),  # blue
+    4: (199,121,73,255),  # blue
     5: (128,0,128,255),  # purple
     6: (0,165,255,255),  # orange
-    7: (19,69,139,255),  # brown
+    7: (65,58,100,255),  # brown
 }
 COLOR_NAMES = ['black',
                'white',

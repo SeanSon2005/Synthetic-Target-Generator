@@ -7,31 +7,54 @@ import glob
 import os
 from multiprocessing.pool import ThreadPool
 from tqdm import tqdm
+import skimage.exposure
 
-SAMPLE_SIZE = 200
+SAMPLE_SIZE = 500
 MAX_NUM_OBJECTS = 2
 PADDING = 20
 CORE_COUNT = 24
-CORR_NOISE_NORM = 3
+
+# rotate point around a certain origin point
+def rotate(origin, point, angle):
+    angle = angle * (np.pi / 180)
+    ox, oy = origin
+    px, py = point
+    qx = ox + np.cos(angle) * (px - ox) - np.sin(angle) * (py - oy)
+    qy = oy + np.sin(angle) * (px - ox) + np.cos(angle) * (py - oy)
+    return (int(qx), int(qy))
+
+# generate reflection rectangle
+def generate_reflection(image_size):
+    image = np.zeros((image_size*2, image_size*2), dtype = np.uint8)
+    if np.random.random() > 0.5:
+        rect_angle = np.random.randint(0,180)
+        rect_width = np.random.randint(15,25)
+        center = (image_size, image_size)
+        points = []
+        points.append(rotate(center, (0, image_size - rect_width // 2), rect_angle))
+        points.append(rotate(center, (0, image_size + rect_width // 2), rect_angle))
+        points.append(rotate(center, (image_size * 2, image_size + rect_width // 2), rect_angle))
+        points.append(rotate(center, (image_size * 2, image_size - rect_width // 2), rect_angle))
+        image = cv2.drawContours(image, [np.array(points)], 0, (100), -1)
+        image = cv2.GaussianBlur(image, (21,21), 0)
+
+    return image
 
 # applies additive correlation noise to image
 def camera_noise(image):
-    # add white overlay
-    white_amount = np.random.random() * 0.25 + 0.2
+    # add global white overlay
+    white_amount = np.random.random() * 0.25
     white_image = np.ones_like(image, dtype=np.uint8) * 255
     image = cv2.addWeighted(image,1-white_amount,white_image,white_amount,0)
 
     # generate correlated noise
-    corr_noise = np.random.normal(0, 0.02, size=image.shape) * np.sqrt(image)
-    corr_noise += np.random.normal(0, 0.02, size=image.shape)
-    kernel = np.ones((3,3))/9
-    corr_noise = cv2.filter2D(corr_noise, ddepth=-1, kernel=kernel)
+    noise = np.random.randint(image)
 
-    return image + corr_noise
+    return image
 
 # pastes an image on top of another image taking alpha into account
 @numba.jit(nopython=True)
-def alpha_paste(bg_img, img):
+def alpha_paste(bg_img, img, reflect_rect):
     # Handle Shapes and Sizes
     bg_img_size = bg_img.shape[0]
     img_size = img.shape[0]
@@ -50,9 +73,9 @@ def alpha_paste(bg_img, img):
             x_i >= bg_img_size:
                 continue
             if img[ay][ax][3] == 255:
-                bg_img[y_i][x_i][0] = min(max(img[ay][ax][0]+np.random.randint(-5,6),0),255)
-                bg_img[y_i][x_i][1] = min(max(img[ay][ax][1]+np.random.randint(-5,6),0),255)
-                bg_img[y_i][x_i][2] = min(max(img[ay][ax][2]+np.random.randint(-5,6),0),255)
+                bg_img[y_i][x_i][0] = min(max(img[ay][ax][0]+reflect_rect[ay+img_size//2][ax+img_size//2],0),255)
+                bg_img[y_i][x_i][1] = min(max(img[ay][ax][1]+reflect_rect[ay+img_size//2][ax+img_size//2],0),255)
+                bg_img[y_i][x_i][2] = min(max(img[ay][ax][2]+reflect_rect[ay+img_size//2][ax+img_size//2],0),255)
     return bg_img, (center_x,center_y)
 
 # generates a sample image
@@ -70,13 +93,14 @@ def generate_sample(bg_sampler:Backgrounds, tgt_sampler:Targets, idx):
             img = cv2.warpAffine(img, M, (img_size, img_size))
 
             # paste image
-            bg_img, center_pt = alpha_paste(bg_img, img)
+            reflect_rect = generate_reflection(img_size)
+            bg_img, center_pt = alpha_paste(bg_img, img, reflect_rect)
             c_x = str(center_pt[0] / bg_img_size)
             c_y = str(center_pt[1] / bg_img_size)
             px_size = str(img_size / bg_img_size)
             file.write("0 "+c_x+" "+c_y+" "+px_size+" "+px_size+"\n")
         file.close()
-    bg_img = camera_noise(bg_img)
+    bg_img = camera_noise(bg_img)  
     cv2.imwrite("base_images/data"+str(idx)+".jpg",bg_img)
 
 if __name__ == '__main__':
