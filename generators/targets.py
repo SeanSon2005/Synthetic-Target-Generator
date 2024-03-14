@@ -156,14 +156,14 @@ if __name__ == '__main__':
                 color = COLORS[color_idx]
                 color_name = COLOR_NAMES[color_idx]
                 color2 = COLORS[color_idx2]
-                images.append(circle(0,color,color2,alphanum_id))
-                images.append(circle(1,color,color2,alphanum_id))
-                images.append(circle(2,color,color2,alphanum_id))
-                images.append(polygon(3,color,color2,alphanum_id))
-                images.append(polygon(4,color,color2,alphanum_id))
-                images.append(polygon(5,color,color2,alphanum_id))
-                images.append(star(color,color2,alphanum_id))
-                images.append(cross(color,color2,alphanum_id))
+                images.append(circle(0,color,color2,alphanum_id)) # 0 circle
+                images.append(circle(1,color,color2,alphanum_id)) # 1 semi-circle
+                images.append(circle(2,color,color2,alphanum_id)) # 2 quarter-circle
+                images.append(polygon(3,color,color2,alphanum_id)) # 3 triangle
+                images.append(polygon(4,color,color2,alphanum_id)) # 4 rectangle
+                images.append(polygon(5,color,color2,alphanum_id)) # 5 pentagon
+                images.append(star(color,color2,alphanum_id)) # 6 star
+                images.append(cross(color,color2,alphanum_id)) # 7 cross
                 for i in range(8):
                     data.append((color_idx,i,alphanum_id))
 
