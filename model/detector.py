@@ -100,7 +100,7 @@ def draw_detections(image, boxes, scores, class_ids, mask_alpha=0.3):
 
         draw_box(det_img, box, color)
 
-        label = "target"
+        label = class_id
         caption = f'{label} {int(score * 100)}%'
         draw_text(det_img, caption, box, color, font_size, text_thickness)
 
@@ -125,8 +125,8 @@ class Detector:
         self.get_output_details()
 
 
-    def detect_objects(self, image):
-        input_tensor = self.prepare_input(image)
+    def detect_objects(self, input_tensor):
+        self.img_height, self.img_width = 1280, 1280
 
         # Perform inference on the image
         outputs = self.inference(input_tensor)
@@ -134,21 +134,6 @@ class Detector:
         self.boxes, self.scores, self.class_ids = self.process_output(outputs)
 
         return self.boxes, self.scores, self.class_ids
-
-    def prepare_input(self, image):
-        self.img_height, self.img_width = image.shape[:2]
-
-        input_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-        # Resize input image
-        input_img = cv2.resize(input_img, (self.input_width, self.input_height))
-
-        # Scale input pixel values to 0 to 1
-        input_img = input_img / 255.0
-        input_img = input_img.transpose(2, 0, 1)
-        input_tensor = input_img[np.newaxis, :, :, :].astype(np.float16)
-
-        return input_tensor
 
 
     def inference(self, input_tensor):
@@ -160,6 +145,8 @@ class Detector:
 
     def process_output(self, output):
         predictions = np.squeeze(output[0]).T
+
+        print("conf:",self.conf_threshold)
 
         # Filter out object confidence scores below threshold
         scores = np.max(predictions[:, 4:], axis=1)

@@ -3,27 +3,9 @@ import math
 import numpy as np
 
 SEED = 2024
-SIZE = 60
-TEXT_SIZE = 0.8
+SIZE = 80
+TEXT_SIZE = 0.9
 
-COLORS = {  # the 4th value is for alpha channel
-    0: (0,0,0,255),  # black
-    1: (255,255,255,255),  # white
-    2: (81,88,192,255),  # red
-    3: (0,255,0,255),  # green
-    4: (199,121,73,255),  # blue
-    5: (128,0,128,255),  # purple
-    6: (0,165,255,255),  # orange
-    7: (65,58,100,255),  # brown
-}
-COLOR_NAMES = ['black',
-               'white',
-               'red',
-               'green',
-               'blue',
-               'purple',
-               'orange',
-               'brown']
 SHAPE_NAMES = ['circle',
                'semicircle',
                'quartercircle',
@@ -34,17 +16,6 @@ SHAPE_NAMES = ['circle',
                'cross']
 
 FONT = cv2.FONT_HERSHEY_SIMPLEX
-
-class Targets:
-    def __init__(self):
-        try:
-            self.images = np.load("generators/images.npy")
-            self.data = np.load("generators/data.npy")
-        except:
-            raise Exception("run targets.py")
-    def sample(self):
-        id = np.random.randint(0,len(self.images))
-        return self.images[id], self.data[id]
 
 # alphanumeric: 0 - 35
 def add_text(img, alphanum, color):
@@ -143,30 +114,68 @@ def cross(color, color2, alphanum):
                             0, color, -1),
                             alphanum, color2)
 
-# Actual Image Generation
-if __name__ == '__main__':
-    images = []
-    data = []
-    for color_idx in range(8):
-        for color_idx2 in range(8):
-            # skip same color
-            if color_idx == color_idx2:
-                continue
-            for alphanum_id in range(36):
-                color = COLORS[color_idx]
-                color_name = COLOR_NAMES[color_idx]
-                color2 = COLORS[color_idx2]
-                images.append(circle(0,color,color2,alphanum_id)) # 0 circle
-                images.append(circle(1,color,color2,alphanum_id)) # 1 semi-circle
-                images.append(circle(2,color,color2,alphanum_id)) # 2 quarter-circle
-                images.append(polygon(3,color,color2,alphanum_id)) # 3 triangle
-                images.append(polygon(4,color,color2,alphanum_id)) # 4 rectangle
-                images.append(polygon(5,color,color2,alphanum_id)) # 5 pentagon
-                images.append(star(color,color2,alphanum_id)) # 6 star
-                images.append(cross(color,color2,alphanum_id)) # 7 cross
-                for i in range(8):
-                    data.append((color_idx,i,alphanum_id))
 
-    np.save("generators/images.npy", np.array(images))
-    np.save("generators/data.npy", np.array(data))
+class Targets:
+    def __init__(self):
+        pass
+    def sample(self, color = None, shape_id = None, black = False):
+        # SHAPE AND ALLPHANUMERIC
+        alphanum_id = np.random.randint(0,36)
+
+        if shape_id is None:
+            shape_id = np.random.randint(0,8)
+        
+        if color is None:
+            # COLOR 1
+            r = np.random.randint(0, 256)
+            g = np.random.randint(0, 256)
+            b = np.random.randint(0, 256)
+            color = (b, g, r, 255)
+        else:
+            b = int(color[0])
+            g = int(color[1])
+            r = int(color[2])
+            color = (b, g, r, 255)
+
+        # COLOR 2
+        if black:
+            color2 = (0,0,0,255)
+        else:
+            r2 = np.random.randint(0, 256)
+            g2 = np.random.randint(0, 256)
+            b2 = np.random.randint(0, 256)
+            while(True):
+                if (abs(r - r2) + abs(g - g2) + abs(b - b2) > 0.35):
+                    break
+                r2 = np.random.randint(0, 256)
+                g2 = np.random.randint(0, 256) 
+                b2 = np.random.randint(0, 256)
+
+            color2 = (b2, g2, r2, 255)
+        
+        if shape_id == 0:
+            img = circle(0,color,color2,alphanum_id) # 0 circle
+        elif shape_id == 1:
+            img = circle(1,color,color2,alphanum_id) # 1 semi-circle
+        elif shape_id == 2:
+            img = circle(2,color,color2,alphanum_id) # 2 quarter-circle
+        elif shape_id == 3:
+            img = polygon(3,color,color2,alphanum_id) # 3 triangle
+        elif shape_id == 4:
+            img = polygon(4,color,color2,alphanum_id) # 4 rectangle
+        elif shape_id == 5:
+            img = polygon(5,color,color2,alphanum_id) # 5 pentagon
+        elif shape_id == 6:
+            img = star(color,color2,alphanum_id) # 6 star
+        else:
+            img = cross(color,color2,alphanum_id) # 7 cross
+
+        # Data augmentation
+        noise_level = np.random.randint(10,15)
+        noise = np.random.normal(0, noise_level, img.shape)
+        img = cv2.add(img, noise)
+        img = cv2.GaussianBlur(img, (7,7), 0)
+        
+        data = (shape_id, alphanum_id)
+        return img, data
 

@@ -9,7 +9,7 @@ from multiprocessing.pool import ThreadPool
 from tqdm import tqdm
 import skimage.exposure
 
-SAMPLE_SIZE = 500
+SAMPLE_SIZE = 4000
 MAX_NUM_OBJECTS = 2
 PADDING = 20
 CORE_COUNT = 24
@@ -34,7 +34,7 @@ def alpha_paste(bg_img, img):
             y_i >= bg_img_size or \
             x_i >= bg_img_size:
                 continue
-            if img[ay][ax][3] == 255:
+            if img[ay][ax][3] > 240:
                 bg_img[y_i][x_i][0] = min(max(img[ay][ax][0],0),255)
                 bg_img[y_i][x_i][1] = min(max(img[ay][ax][1],0),255)
                 bg_img[y_i][x_i][2] = min(max(img[ay][ax][2],0),255)
@@ -59,8 +59,9 @@ def generate_sample(bg_sampler:Backgrounds, tgt_sampler:Targets, idx):
             c_x = str(center_pt[0] / bg_img_size)
             c_y = str(center_pt[1] / bg_img_size)
             px_size = str(img_size / bg_img_size)
-            file.write(str(data[1])+" "+c_x+" "+c_y+" "+px_size+" "+px_size+"\n")
+            file.write("0 "+c_x+" "+c_y+" "+px_size+" "+px_size+"\n")
         file.close()
+    bg_img = cv2.cvtColor(bg_img, cv2.COLOR_BGR2HSV)[:,:,0]
     cv2.imwrite("base_images/data"+str(idx)+".jpg",bg_img)
 
 if __name__ == '__main__':
